@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,15 +10,17 @@
             text-align: center;
             font-family: Arial, sans-serif;
         }
+
         .court {
             position: relative;
-            width: 500px;
-            height: 470px;
-            background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Basketball_half_court.svg/800px-Basketball_half_court.svg.png') no-repeat center;
+            width: 849px;
+            height: 1593px;
+            background: url('gsw.png') no-repeat center;
             background-size: contain;
             margin: 20px auto;
             border: 2px solid #000;
         }
+
         .shot {
             position: absolute;
             font-size: 16px;
@@ -27,33 +30,44 @@
             height: 15px;
             line-height: 15px;
         }
+
         .made {
             color: green;
         }
+
         .missed {
             color: red;
         }
+
         .active {
             background-color: yellow;
         }
+
         .scoreboard {
             margin-top: 20px;
             font-size: 18px;
         }
+
         table {
             margin: 0 auto;
             border-collapse: collapse;
             width: 400px;
         }
-        table, th, td {
+
+        table,
+        th,
+        td {
             border: 1px solid black;
         }
-        th, td {
+
+        th,
+        td {
             padding: 10px;
             text-align: center;
         }
     </style>
 </head>
+
 <body>
     <h1>Basketball Shot Chart</h1>
     <p>Click on the court to select a shot location, then choose Made or Missed.</p>
@@ -61,7 +75,7 @@
     <button id="madeBtn" onclick="setShotType(true)">Made</button>
     <button id="missedBtn" onclick="setShotType(false)">Missed</button>
     <div class="court" onclick="recordShot(event)"></div>
-    
+
     <div class="scoreboard">
         <table>
             <tr>
@@ -102,52 +116,116 @@
             </tr>
         </table>
     </div>
-    
+
     <script>
         let shotType = null;
-        const hoopX = 250, hoopY = 50; // Approximate hoop position
+        const hoopX = 424, hoopY = 222; // Approximate hoop position
+        const cornerLeft = 119;  // X position of the left corner
+        const cornerRight = 732; // X position of the right corner
+        const cornerBottom = 151; // Y position of the bottom corner
+        const cornerTop = 320; // Y position of the top corner
+
+
         let fga = 0, fgm = 0, fg2m = 0, fg3m = 0;
-        
+
         function setShotType(made) {
             shotType = made ? "made" : "missed";
             document.getElementById("madeBtn").classList.toggle("active", made);
             document.getElementById("missedBtn").classList.toggle("active", !made);
         }
 
+        // Calculate the pixel distance between the hoop and the point (102, 232)
+        const pixelDistance = Math.sqrt(Math.pow(116 - hoopX, 2) + Math.pow(222 - hoopY, 2));
+
+        // Real-world distance between those two points is about 23 feet
+        const scaleFactor = 22 / pixelDistance;
+
         function recordShot(event) {
             if (shotType === null) {
                 alert("Please select Made or Missed before clicking on the court.");
                 return;
             }
-            
+
             const court = event.currentTarget;
             const rect = court.getBoundingClientRect();
+
+            // Calculate the position relative to the court image
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
-            
-            const distance = Math.round(Math.sqrt(Math.pow(x - hoopX, 2) + Math.pow(y - hoopY, 2)));
-            
+
+            // Calculate the pixel distance between the shot and the hoop
+            const pixelDist = Math.sqrt(Math.pow(x - hoopX, 2) + Math.pow(y - hoopY, 2));
+
+            // Convert pixel distance to feet using the scaling factor
+            const distance = Math.round(pixelDist * scaleFactor);
+
+            // Create the shot element and display it on the court
             const shot = document.createElement("div");
             shot.classList.add("shot", shotType);
             shot.textContent = `${shotType === "made" ? "O" : "X"} (${distance}ft)`;
-            
-            shot.style.left = `${x - 15}px`;
-            shot.style.top = `${y - 7}px`;
-            
+
+            // Position the shot on the court
+            shot.style.left = `${x - 15}px`;  // Adjust for shot element's center
+            shot.style.top = `${y - 7}px`;   // Adjust for shot element's height
+
+            // Append the shot to the court
             court.appendChild(shot);
-            
-            updateScoreboard(distance);
+
+            // Update the scoreboard with the shot's distance
+            updateScoreboard(distance, x, y);
         }
-        
-        function updateScoreboard(distance) {
+
+        // function updateScoreboard(distance) {
+        //     fga++;
+        //     let points = 0;
+        //     if (shotType === "made") {
+        //         fgm++;
+        //         if (distance <= 22) {
+        //             fg2m++;
+        //             points = 2;
+        //         }
+        //         if ( distance === 23 ) {
+        //             if((y > cornerBottom && y < cornerTop) && (x < cornerLeft || x > cornerRight)) {
+        //                 fg3m++;
+        //                 points = 3;
+        //             }
+        //             else {
+        //                 fg2m++;
+        //                 points = 2;
+        //             }
+        //         }
+        //         else {
+        //             fg3m++;
+        //             points = 3;
+        //         }
+        //     }
+        function updateScoreboard(distance, x, y) {
             fga++;
             let points = 0;
+
             if (shotType === "made") {
                 fgm++;
-                if (distance <= 23) {
+
+                // 2-point shot (less than or equal to 22 feet)
+                if (distance <= 22) {
                     fg2m++;
                     points = 2;
-                } else {
+                }
+                // 3-point shot (distance exactly 23 feet)
+                else if (distance === 23) {
+                    // Corner 3-point shot
+                    if ((y > cornerBottom && y < cornerTop) && (x < cornerLeft || x > cornerRight)) {
+                        fg3m++;
+                        points = 3;
+                    }
+                    // Regular 2-point shot at 23 feet
+                    else {
+                        fg2m++;
+                        points = 2;
+                    }
+                }
+                // 3-point shot (greater than 23 feet)
+                else if (distance > 23) {
                     fg3m++;
                     points = 3;
                 }
@@ -157,18 +235,18 @@
             document.getElementById("fg2m").textContent = fg2m;
             document.getElementById("fg3m").textContent = fg3m;
             document.getElementById("totalPoints").textContent = parseInt(document.getElementById("totalPoints").textContent) + points;
-            
+
             document.getElementById("fgp").textContent = ((fgm / fga) * 100).toFixed(1) + "%";
             document.getElementById("fg2p").textContent = ((fg2m / (fg2m + fg3m)) * 100 || 0).toFixed(1) + "%";
             document.getElementById("fg3p").textContent = ((fg3m / (fg2m + fg3m)) * 100 || 0).toFixed(1) + "%";
         }
-        
+
         function resetChart() {
             document.querySelectorAll(".shot").forEach(shot => shot.remove());
             shotType = null;
             document.getElementById("madeBtn").classList.remove("active");
             document.getElementById("missedBtn").classList.remove("active");
-            
+
             fga = 0; fgm = 0; fg2m = 0; fg3m = 0;
             document.getElementById("fga").textContent = fga;
             document.getElementById("fgm").textContent = fgm;
@@ -181,4 +259,5 @@
         }
     </script>
 </body>
+
 </html>
