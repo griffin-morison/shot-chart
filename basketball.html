@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Shot Chart</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .court {
+            position: relative;
+            width: 500px;
+            height: 470px;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Basketball_half_court.svg/800px-Basketball_half_court.svg.png') no-repeat center;
+            background-size: contain;
+            margin: 20px auto;
+            border: 2px solid #000;
+        }
+        .shot {
+            position: absolute;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            width: 30px;
+            height: 15px;
+            line-height: 15px;
+        }
+        .made {
+            color: green;
+        }
+        .missed {
+            color: red;
+        }
+        .active {
+            background-color: yellow;
+        }
+        .scoreboard {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 400px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Basketball Shot Chart</h1>
+    <p>Click on the court to select a shot location, then choose Made or Missed.</p>
+    <button onclick="resetChart()">Reset Chart</button>
+    <button id="madeBtn" onclick="setShotType(true)">Made</button>
+    <button id="missedBtn" onclick="setShotType(false)">Missed</button>
+    <div class="court" onclick="recordShot(event)"></div>
+    
+    <div class="scoreboard">
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Count</th>
+            </tr>
+            <tr>
+                <td>Field Goals Attempted</td>
+                <td id="fga">0</td>
+            </tr>
+            <tr>
+                <td>Field Goals Made</td>
+                <td id="fgm">0</td>
+            </tr>
+            <tr>
+                <td>FG%</td>
+                <td id="fgp">0%</td>
+            </tr>
+            <tr>
+                <td>2PT Shots Made</td>
+                <td id="fg2m">0</td>
+            </tr>
+            <tr>
+                <td>2PT%</td>
+                <td id="fg2p">0%</td>
+            </tr>
+            <tr>
+                <td>3PT Shots Made</td>
+                <td id="fg3m">0</td>
+            </tr>
+            <tr>
+                <td>3PT%</td>
+                <td id="fg3p">0%</td>
+            </tr>
+            <tr>
+                <td>Total Points</td>
+                <td id="totalPoints">0</td>
+            </tr>
+        </table>
+    </div>
+    
+    <script>
+        let shotType = null;
+        const hoopX = 250, hoopY = 50; // Approximate hoop position
+        let fga = 0, fgm = 0, fg2m = 0, fg3m = 0;
+        
+        function setShotType(made) {
+            shotType = made ? "made" : "missed";
+            document.getElementById("madeBtn").classList.toggle("active", made);
+            document.getElementById("missedBtn").classList.toggle("active", !made);
+        }
+
+        function recordShot(event) {
+            if (shotType === null) {
+                alert("Please select Made or Missed before clicking on the court.");
+                return;
+            }
+            
+            const court = event.currentTarget;
+            const rect = court.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            const distance = Math.round(Math.sqrt(Math.pow(x - hoopX, 2) + Math.pow(y - hoopY, 2)));
+            
+            const shot = document.createElement("div");
+            shot.classList.add("shot", shotType);
+            shot.textContent = `${shotType === "made" ? "O" : "X"} (${distance}ft)`;
+            
+            shot.style.left = `${x - 15}px`;
+            shot.style.top = `${y - 7}px`;
+            
+            court.appendChild(shot);
+            
+            updateScoreboard(distance);
+        }
+        
+        function updateScoreboard(distance) {
+            fga++;
+            let points = 0;
+            if (shotType === "made") {
+                fgm++;
+                if (distance <= 23) {
+                    fg2m++;
+                    points = 2;
+                } else {
+                    fg3m++;
+                    points = 3;
+                }
+            }
+            document.getElementById("fga").textContent = fga;
+            document.getElementById("fgm").textContent = fgm;
+            document.getElementById("fg2m").textContent = fg2m;
+            document.getElementById("fg3m").textContent = fg3m;
+            document.getElementById("totalPoints").textContent = parseInt(document.getElementById("totalPoints").textContent) + points;
+            
+            document.getElementById("fgp").textContent = ((fgm / fga) * 100).toFixed(1) + "%";
+            document.getElementById("fg2p").textContent = ((fg2m / (fg2m + fg3m)) * 100 || 0).toFixed(1) + "%";
+            document.getElementById("fg3p").textContent = ((fg3m / (fg2m + fg3m)) * 100 || 0).toFixed(1) + "%";
+        }
+        
+        function resetChart() {
+            document.querySelectorAll(".shot").forEach(shot => shot.remove());
+            shotType = null;
+            document.getElementById("madeBtn").classList.remove("active");
+            document.getElementById("missedBtn").classList.remove("active");
+            
+            fga = 0; fgm = 0; fg2m = 0; fg3m = 0;
+            document.getElementById("fga").textContent = fga;
+            document.getElementById("fgm").textContent = fgm;
+            document.getElementById("fg2m").textContent = fg2m;
+            document.getElementById("fg3m").textContent = fg3m;
+            document.getElementById("totalPoints").textContent = 0;
+            document.getElementById("fgp").textContent = "0%";
+            document.getElementById("fg2p").textContent = "0%";
+            document.getElementById("fg3p").textContent = "0%";
+        }
+    </script>
+</body>
+</html>
