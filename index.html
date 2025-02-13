@@ -9,6 +9,13 @@
         body {
             text-align: center;
             font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            display: flex;
+            padding: 50px;
         }
 
         .court {
@@ -23,12 +30,12 @@
 
         .shot {
             position: absolute;
-            font-size: 16px;
+            font-size: 30px;
             font-weight: bold;
             text-align: center;
             width: 30px;
             height: 15px;
-            line-height: 15px;
+            line-height: 30px;
         }
 
         .made {
@@ -46,6 +53,12 @@
         .scoreboard {
             margin-top: 20px;
             font-size: 18px;
+        }
+
+        .shot-log {
+            margin-left: 20px;
+            max-width: 200px;
+            text-align: left;
         }
 
         table {
@@ -69,40 +82,88 @@
 </head>
 
 <body>
-    <h1>Basketball Shot Chart</h1>
-    <p>Click on the court to select a shot location, then choose Made or Missed.</p>
-    <button onclick="resetChart()">Reset Chart</button>
-    <button id="madeBtn" onclick="setShotType(true)">Made</button>
-    <button id="missedBtn" onclick="setShotType(false)">Missed</button>
-    <div class="scoreboard">
-        <table>
-            <tr>
-                <th>FGA</th>
-                <th>FGM</th>
-                <th>FG%</th>
-                <th>2PA</th>
-                <th>2PM</th>
-                <th>2P%</th>
-                <th>3PA</th>
-                <th>3PM</th>
-                <th>3P%</th>
-                <th>PTS</th>
-            </tr>
-            <tr>
-                <td id="fga">0</td>
-                <td id="fgm">0</td>
-                <td id="fgp">0%</td>
-                <td id="fg2a">0</td>
-                <td id="fg2m">0</td>
-                <td id="fg2p">0%</td>
-                <td id="fg3a">0</td>
-                <td id="fg3m">0</td>
-                <td id="fg3p">0%</td>
-                <td id="totalPoints">0</td>
-            </tr>
-        </table>
+    <div>
+        <h1>Basketball Shot Chart</h1>
+        <p>Click on the court to select a shot location, then choose Made or Missed.</p>
+        <button onclick="resetChart()">Reset Chart</button>
+        <button id="madeBtn" onclick="setShotType(true)">Made</button>
+        <button id="missedBtn" onclick="setShotType(false)">Missed</button>
+        <div class="scoreboard">
+            <table>
+                <tr>
+                    <th>FGA</th>
+                    <td id="fga">0</td>
+                </tr>
+                <tr>
+                    <th>FGM</th>
+                    <td id="fgm">0</td>
+                </tr>
+                <tr>
+                    <th>FG%</th>
+                    <td id="fgp">0%</td>
+                </tr>
+                <tr>
+                    <th>2PA</th>
+                    <td id="fg2a">0</td>
+                </tr>
+                <tr>
+                    <th>2PM</th>
+                    <td id="fg2m">0</td>
+                </tr>
+                <tr>
+                    <th>2P%</th>
+                    <td id="fg2p">0%</td>
+                </tr>
+                <tr>
+                    <th>3PA</th>
+                    <td id="fg3a">0</td>
+                </tr>
+                <tr>
+                    <th>3PM</th>
+                    <td id="fg3m">0</td>
+                </tr>
+                <tr>
+                    <th>3P%</th>
+                    <td id="fg3p">0%</td>
+                </tr>
+                <tr>
+                    <th>PTS</th>
+                    <td id="totalPoints">0</td>
+                </tr>
+                <!-- <tr>
+                    <th>FGA</th>
+                    <th>FGM</th>
+                    <th>FG%</th>
+                    <th>2PA</th>
+                    <th>2PM</th>
+                    <th>2P%</th>
+                    <th>3PA</th>
+                    <th>3PM</th>
+                    <th>3P%</th>
+                    <th>PTS</th>
+                </tr>
+                <tr>
+                    <td id="fga">0</td>
+                    <td id="fgm">0</td>
+                    <td id="fgp">0%</td>
+                    <td id="fg2a">0</td>
+                    <td id="fg2m">0</td>
+                    <td id="fg2p">0%</td>
+                    <td id="fg3a">0</td>
+                    <td id="fg3m">0</td>
+                    <td id="fg3p">0%</td>
+                    <td id="totalPoints">0</td>
+                </tr> -->
+            </table>
+        </div>
     </div>
-    <div class="court" onclick="recordShot(event)"></div>
+    <div class="container">
+        <div class="court" onclick="recordShot(event)"></div>
+    </div>
+    <div class="shot-log">
+        <h2>Shot Log</h2>
+        <ul id="shotLog"></ul>
+    </div>
 
     <script>
         let shotType = null;
@@ -149,7 +210,8 @@
             // Create the shot element and display it on the court
             const shot = document.createElement("div");
             shot.classList.add("shot", shotType);
-            shot.textContent = `${shotType === "made" ? "O" : "X"} (${distance}ft)`;
+            // shot.textContent = `${shotType === "made" ? "O" : "X"} (${distance}ft)`;
+            shot.textContent = `${shotType === "made" ? "O" : "X"}`;
 
             // Position the shot on the court
             shot.style.left = `${x - 15}px`;  // Adjust for shot element's center
@@ -160,6 +222,28 @@
 
             // Update the scoreboard with the shot's distance
             updateScoreboard(distance, x, y);
+            updateShotLog(shotType, distance, x, y);
+        }
+
+        function updateShotLog(type, distance, x, y) {
+            const shotLog = document.getElementById("shotLog");
+            const entry = document.createElement("li");
+            let shotType = "2PT";
+
+            if (distance === 23) {
+                if ((y > cornerBottom && y < cornerTop) && (x < cornerLeft || x > cornerRight)) {
+                    shotType = "3PT";
+                }
+                else {
+                    shotType = "2PT";
+                }
+            }
+            else if (distance > 23) {
+                shotType = "3PT";
+            }
+
+            entry.textContent = `${type === "made" ? "Made" : "Missed"} ${shotType} from ${distance}ft`;
+            shotLog.appendChild(entry);
         }
 
         function updateScoreboard(distance, x, y) {
@@ -236,7 +320,7 @@
             document.getElementById("madeBtn").classList.remove("active");
             document.getElementById("missedBtn").classList.remove("active");
 
-            fga = 0; fgm = 0; fg2a = 0; fg2m = 0; fg3a = 0; fg3m = 0;
+            fga = 0; fgm = 0; fg2a = 0; fg2m = 0; fg3a = 0; fg3m = 0; shotLog = "";
             document.getElementById("fga").textContent = fga;
             document.getElementById("fgm").textContent = fgm;
             document.getElementById("fg2a").textContent = fg2a;
@@ -247,6 +331,8 @@
             document.getElementById("fgp").textContent = "0%";
             document.getElementById("fg2p").textContent = "0%";
             document.getElementById("fg3p").textContent = "0%";
+
+            document.getElementById("shotLog").textContent = shotLog;
         }
     </script>
 </body>
