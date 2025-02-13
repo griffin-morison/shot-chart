@@ -74,48 +74,35 @@
     <button onclick="resetChart()">Reset Chart</button>
     <button id="madeBtn" onclick="setShotType(true)">Made</button>
     <button id="missedBtn" onclick="setShotType(false)">Missed</button>
-    <div class="court" onclick="recordShot(event)"></div>
-
     <div class="scoreboard">
         <table>
             <tr>
-                <th>Category</th>
-                <th>Count</th>
+                <th>FGA</th>
+                <th>FGM</th>
+                <th>FG%</th>
+                <th>2PA</th>
+                <th>2PM</th>
+                <th>2P%</th>
+                <th>3PA</th>
+                <th>3PM</th>
+                <th>3P%</th>
+                <th>PTS</th>
             </tr>
             <tr>
-                <td>Field Goals Attempted</td>
                 <td id="fga">0</td>
-            </tr>
-            <tr>
-                <td>Field Goals Made</td>
                 <td id="fgm">0</td>
-            </tr>
-            <tr>
-                <td>FG%</td>
                 <td id="fgp">0%</td>
-            </tr>
-            <tr>
-                <td>2PT Shots Made</td>
+                <td id="fg2a">0</td>
                 <td id="fg2m">0</td>
-            </tr>
-            <tr>
-                <td>2PT%</td>
                 <td id="fg2p">0%</td>
-            </tr>
-            <tr>
-                <td>3PT Shots Made</td>
+                <td id="fg3a">0</td>
                 <td id="fg3m">0</td>
-            </tr>
-            <tr>
-                <td>3PT%</td>
                 <td id="fg3p">0%</td>
-            </tr>
-            <tr>
-                <td>Total Points</td>
                 <td id="totalPoints">0</td>
             </tr>
         </table>
     </div>
+    <div class="court" onclick="recordShot(event)"></div>
 
     <script>
         let shotType = null;
@@ -126,7 +113,7 @@
         const cornerTop = 320; // Y position of the top corner
 
 
-        let fga = 0, fgm = 0, fg2m = 0, fg3m = 0;
+        let fga = 0, fgm = 0, fg2a = 0, fg2m = 0, fg3a = 0, fg3m = 0;
 
         function setShotType(made) {
             shotType = made ? "made" : "missed";
@@ -185,6 +172,7 @@
                 // 2-point shot (less than or equal to 22 feet)
                 if (distance <= 22) {
                     fg2m++;
+                    fg2a++;
                     points = 2;
                 }
                 // 3-point shot (distance exactly 23 feet)
@@ -192,29 +180,54 @@
                     // Corner 3-point shot
                     if ((y > cornerBottom && y < cornerTop) && (x < cornerLeft || x > cornerRight)) {
                         fg3m++;
+                        fg3a++;
                         points = 3;
                     }
                     // Regular 2-point shot at 23 feet
                     else {
                         fg2m++;
+                        fg2a++;
                         points = 2;
                     }
                 }
                 // 3-point shot (greater than 23 feet)
                 else if (distance > 23) {
                     fg3m++;
+                    fg3a++;
                     points = 3;
+                }
+            }
+            else {
+                if (distance <= 22) {
+                    fg2a++;
+                }
+                // 3-point shot (distance exactly 23 feet)
+                else if (distance === 23) {
+                    // Corner 3-point shot
+                    if ((y > cornerBottom && y < cornerTop) && (x < cornerLeft || x > cornerRight)) {
+                        fg3a++;
+                    }
+                    // Regular 2-point shot at 23 feet
+                    else {
+                        fg2a++;
+                    }
+                }
+                // 3-point shot (greater than 23 feet)
+                else if (distance > 23) {
+                    fg3a++;
                 }
             }
             document.getElementById("fga").textContent = fga;
             document.getElementById("fgm").textContent = fgm;
+            document.getElementById("fg2a").textContent = fg2a;
             document.getElementById("fg2m").textContent = fg2m;
+            document.getElementById("fg3a").textContent = fg3a;
             document.getElementById("fg3m").textContent = fg3m;
             document.getElementById("totalPoints").textContent = parseInt(document.getElementById("totalPoints").textContent) + points;
 
             document.getElementById("fgp").textContent = ((fgm / fga) * 100).toFixed(1) + "%";
-            document.getElementById("fg2p").textContent = ((fg2m / (fg2m + fg3m)) * 100 || 0).toFixed(1) + "%";
-            document.getElementById("fg3p").textContent = ((fg3m / (fg2m + fg3m)) * 100 || 0).toFixed(1) + "%";
+            document.getElementById("fg2p").textContent = ((fg2m / fg2a) * 100 || 0).toFixed(1) + "%";
+            document.getElementById("fg3p").textContent = ((fg3m / fg3a) * 100 || 0).toFixed(1) + "%";
         }
 
         function resetChart() {
@@ -223,10 +236,12 @@
             document.getElementById("madeBtn").classList.remove("active");
             document.getElementById("missedBtn").classList.remove("active");
 
-            fga = 0; fgm = 0; fg2m = 0; fg3m = 0;
+            fga = 0; fgm = 0; fg2a = 0; fg2m = 0; fg3a = 0; fg3m = 0;
             document.getElementById("fga").textContent = fga;
             document.getElementById("fgm").textContent = fgm;
+            document.getElementById("fg2a").textContent = fg2a;
             document.getElementById("fg2m").textContent = fg2m;
+            document.getElementById("fg3a").textContent = fg3a;
             document.getElementById("fg3m").textContent = fg3m;
             document.getElementById("totalPoints").textContent = 0;
             document.getElementById("fgp").textContent = "0%";
